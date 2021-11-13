@@ -39,7 +39,7 @@ Environment variables will override options configured in the Python file, while
 ### Command Line Arguments
 
 | Short | Long | Description |
-| --- | --- |
+| --- | --- | --- |
 | `-d` | `--debug` | Enables debug console output |
 | `-u` | `--user` | Sets the Netgear login username |
 | `-p` | `--pass` | Sets the Netgear login password |
