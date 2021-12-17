@@ -16,13 +16,17 @@ PASSWORD = "password"
 
 debug = False
 
+last_session = None
+
 def login():
   session = requests.Session()
   login_page = session.get(ENDPOINT + "/GenieLogin.asp")
   login_page_html = html.fromstring(login_page.text)
   web_token = login_page_html.xpath('/html/body/div/form/input[@name="webToken"]')[0].value
   post = session.post(ENDPOINT + "/goform/GenieLogin", data={'loginUsername': USERNAME, 'loginPassword': PASSWORD, 'login': "1", 'webToken': web_token})
-  return session
+  global last_session
+  last_session = session
+  return True
 
 def get_status(session):
   status_page = session.get(ENDPOINT + "/DocsisStatus.asp")
@@ -58,15 +62,25 @@ async def parse_table(data, status, table_name, table_id):
 
 async def fetch_data():
   try:
-    session = login()
-    status = get_status(session)
+    if last_session is None:
+      login()
+    status = get_status(last_session)
+    return await parse_status(status)
+  except:
+    if debug:
+      print("Unable to fetch new data - trying again")
+      print(traceback.format_exc())
+      sys.stdout.flush()
+  try:
+    login()
+    status = get_status(last_session)
     return await parse_status(status)
   except:
     if debug:
       print("Unable to fetch new data")
       print(traceback.format_exc())
       sys.stdout.flush()
-    return None
+  return None
 
 def setup_web():
   app = web.Application()
